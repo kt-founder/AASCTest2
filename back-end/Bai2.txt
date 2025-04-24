@@ -1,0 +1,22 @@
+[Nest] 21428  - 04/24/2025, 1:56:40 PM     LOG [NestFactory] Starting Nest application...
+[Nest] 21428  - 04/24/2025, 1:56:40 PM     LOG [InstanceLoader] AppModule dependencies initialized +118ms
+[Nest] 21428  - 04/24/2025, 1:56:40 PM     LOG [InstanceLoader] TypeOrmModule dependencies initialized +0ms
+[Nest] 21428  - 04/24/2025, 1:56:40 PM     LOG [InstanceLoader] FibonacciModule dependencies initialized +1ms
+[Nest] 21428  - 04/24/2025, 1:56:40 PM     LOG [InstanceLoader] TypeOrmCoreModule dependencies initialized +65ms
+[Nest] 21428  - 04/24/2025, 1:56:40 PM     LOG [InstanceLoader] TypeOrmModule dependencies initialized +0ms
+[Nest] 21428  - 04/24/2025, 1:56:40 PM     LOG [InstanceLoader] UsersModule dependencies initialized +1ms
+[Nest] 21428  - 04/24/2025, 1:56:40 PM     LOG [RoutesResolver] UsersController {/users}: +16ms
+[Nest] 21428  - 04/24/2025, 1:56:40 PM     LOG [RouterExplorer] Mapped {/users/create, POST} route +2ms
+[Nest] 21428  - 04/24/2025, 1:56:40 PM     LOG [RoutesResolver] FibonacciController {/fibonacci}: +1ms
+[Nest] 21428  - 04/24/2025, 1:56:40 PM     LOG [RouterExplorer] Mapped {/users/create, POST} route +2ms
+[Nest] 21428  - 04/24/2025, 1:56:40 PM     LOG [RoutesResolver] FibonacciController {/fibonacci}: +1ms
+[Nest] 21428  - 04/24/2025, 1:56:40 PM     LOG [RouterExplorer] Mapped {/fibonacci/calculate, GET} route +1ms
+[Nest] 21428  - 04/24/2025, 1:56:40 PM     LOG [NestApplication] Nest application successfully started +2ms
+FibonacciTime: 0.02ms
+Su dung thuat toan don gian nhat: O(n)
+Json response:
+{
+  "result": "354224848179261915075",
+  "time": "0.007ms"
+}
+Neu dung cong thuc Binet: Sẽ xuất hiện sai số với số lớn
