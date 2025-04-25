@@ -3,7 +3,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as path from 'path';
-import * as session from 'express-session';  // Import express-session
+import * as session from 'express-session';
+import { ValidationPipe } from '@nestjs/common'  // Import express-session
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -20,6 +21,11 @@ async function bootstrap() {
         secure: false, // Đặt secure = true nếu đang sử dụng HTTPS
         httpOnly: true, // Cài đặt cookie chỉ có thể truy cập từ server
       },
+    }),
+  );
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true, // ⭐ cần dòng này để ép "123" => 123
     }),
   );
   app.setViewEngine('hbs');

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Line98</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #e0e0e0;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    .home-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 8px 15px;
+      background: linear-gradient(to bottom, #f0f0f0, #d5d5d5);
+      color: #333;
+      border: 1px solid #999;
+      border-radius: 5px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .home-button:hover {
+      background: linear-gradient(to bottom, #e5e5e5, #cacaca);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+    table {
+      border-collapse: separate;
+      border-spacing: 2px;
+      margin: 20px auto;
+      background-color: #999;
+      padding: 3px;
+      border: 2px solid #666;
+    }
+    td {
+      width: 44px;
+      height: 44px;
+      text-align: center;
+      vertical-align: middle;
+      background: linear-gradient(135deg, #e6e6e6, #d4d4d4);
+      border: 1px solid #999;
+    }
+    .ball {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: inline-block;
+      position: relative;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .ball::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%);
+      z-index: 2;
+    }
+    .ball::after {
+      content: '';
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      top: 4px;
+      left: 4px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      z-index: 3;
+    }
+    .ball:hover {
+      transform: scale(1.1);
+    }
+    .red { 
+      background: radial-gradient(circle at 70% 70%, #ff5555, #cc0000);
+      box-shadow: inset -2px -2px 6px rgba(0,0,0,0.5),
+                  inset 2px 2px 6px rgba(255,255,255,0.5);
+    }
+    .blue { 
+      background: radial-gradient(circle at 70% 70%, #5555ff, #0000cc);
+      box-shadow: inset -2px -2px 6px rgba(0,0,0,0.5),
+                  inset 2px 2px 6px rgba(255,255,255,0.5);
+    }
+    .green { 
+      background: radial-gradient(circle at 70% 70%, #00ffff, #00cccc);
+      box-shadow: inset -2px -2px 6px rgba(0,0,0,0.5),
+                  inset 2px 2px 6px rgba(255,255,255,0.5);
+    }
+    .yellow { 
+      background: radial-gradient(circle at 70% 70%, #ffff55, #cccc00);
+      box-shadow: inset -2px -2px 6px rgba(0,0,0,0.5),
+                  inset 2px 2px 6px rgba(255,255,255,0.5);
+    }
+    .purple { 
+      background: radial-gradient(circle at 70% 70%, #ff55ff, #cc00cc);
+      box-shadow: inset -2px -2px 6px rgba(0,0,0,0.5),
+                  inset 2px 2px 6px rgba(255,255,255,0.5);
+    }
+    .small-ball {
+      transform: scale(0.3);
+    }
+    .controls {
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 0 10px;
+      font-size: 16px;
+      background: linear-gradient(to bottom, #f0f0f0, #d5d5d5);
+      color: #333;
+      border: 1px solid #999;
+      border-radius: 5px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    button:hover {
+      background: linear-gradient(to bottom, #e5e5e5, #cacaca);
+    }
+    button:active {
+      background: linear-gradient(to bottom, #d5d5d5, #e5e5e5);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .ball.selected {
+      transform: scale(1.2);
+      box-shadow: 0 0 15px rgba(255,255,255,0.8);
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1.2); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1.2); }
+    }
+    @keyframes moveAnimation {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.8); }
+      100% { transform: scale(1); }
+    }
+    .ball.moving {
+      animation: moveAnimation 0.3s ease;
+    }
+    .cell-highlight {
+      background: rgba(255,255,255,0.2) !important;
+    }
+    .help-button {
+      background: none;
+      border: none;
+      color: #333;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 5px 10px;
+      transition: transform 0.2s;
+    }
+    .help-button:hover {
+      transform: scale(1.1);
+      color: #007bff;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <a href="/" class="home-button">Trang chủ</a>
+    <h1>Chào mừng, {{playerName}}!</h1>
+
+    <!-- Hiển thị bảng game -->
+    <table id="gameBoard">
+      <tbody>
+      {{#each game.board}}
+        <tr>
+          {{#each this}}
+            <td data-x="{{@../index}}" data-y="{{@index}}">
+              {{#if this}}
+                <div class="ball {{this}} {{#if this.isSmall}}small-ball{{/if}}" 
+                     data-color="{{this}}"
+                     data-x="{{@../index}}" 
+                     data-y="{{@index}}"></div>
+              {{else}}
+                <div style="width:36px; height:36px;"></div>
+              {{/if}}
+            </td>
+          {{/each}}
+        </tr>
+      {{/each}}
+      </tbody>
+    </table>
+
+    <!-- Các nút chức năng -->
+    <div class="controls">
+      <button onclick="undoMove()">Undo</button>
+      <button onclick="restartGame()">Chơi lại</button>
+      <button onclick="helpMove()">Trợ giúp</button>
+    </div>
+
+
+  </div>
+
+  <script>
+    let selectedBall = null;
+    const gameId = '{{game.id}}';
+
+    document.querySelectorAll('.ball').forEach(ball => {
+      ball.addEventListener('click', handleBallClick);
+    });
+
+    document.querySelectorAll('td').forEach(cell => {
+      cell.addEventListener('click', handleCellClick);
+    });
+
+    function handleBallClick(event) {
+      event.stopPropagation();
+      const ball = event.target;
+      
+      // Deselect if clicking the same ball
+      if (selectedBall === ball) {
+        deselectBall();
+        return;
+      }
+
+      // Select the new ball
+      if (selectedBall) {
+        deselectBall();
+      }
+      
+      selectedBall = ball;
+      ball.classList.add('selected');
+    }
+
+    function handleCellClick(event) {
+      const cell = event.target.tagName === 'TD' ? event.target : event.target.parentElement;
+      const x2 = parseInt(cell.dataset.x);
+      const y2 = parseInt(cell.dataset.y);
+
+      // If no ball is selected or clicking on a cell with a ball, do nothing
+      if (!selectedBall || cell.querySelector('.ball')) {
+        return;
+      }
+
+      const x1 = parseInt(selectedBall.dataset.x);
+      const y1 = parseInt(selectedBall.dataset.y);
+
+      // Make the move
+      moveBall(x1, y1, x2, y2);
+    }
+
+    async function moveBall(x1, y1, x2, y2) {
+      try {
+        const response = await fetch(`/line98/move/${gameId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ x1, y1, x2, y2 })
+        });
+
+        if (response.ok) {
+          // Add moving animation
+          selectedBall.classList.add('moving');
+          
+          // Wait for animation
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          // Refresh the page to show new state
+          window.location.reload();
+        } else {
+          const errorData = await response.json();
+          if (errorData.message && errorData.message.includes('Game Over: Board is full')) {
+            alert('Game Over! Bảng đã đầy.');
+            window.location.href = '/line98';
+          } else {
+            // Invalid move - show feedback
+            selectedBall.classList.add('invalid');
+            setTimeout(() => {
+              selectedBall.classList.remove('invalid');
+              deselectBall();
+            }, 500);
+          }
+        }
+      } catch (error) {
+        console.error('Error moving ball:', error);
+      }
+    }
+
+    function deselectBall() {
+      if (selectedBall) {
+        selectedBall.classList.remove('selected');
+        selectedBall = null;
+      }
+    }
+    async function undoMove() {
+      try {
+        const response = await fetch(`/line98/undo/${gameId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          window.location.href = '/line98';
+        } else {
+          alert('Không thể hoàn tác bước đi.');
+        }
+      } catch (err) {
+        console.error('Undo failed:', err);
+        alert('Đã xảy ra lỗi khi thực hiện undo.');
+      }
+    }
+
+    async function restartGame() {
+      try {
+        const response = await fetch(`/line98/restart/${gameId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          window.location.href = '/line98';
+        } else {
+          alert('Không thể bắt đầu lại game.');
+        }
+      } catch (err) {
+        console.error('Restart failed:', err);
+        alert('Đã xảy ra lỗi khi bắt đầu lại game.');
+      }
+    }
+
+    async function helpMove() {
+      try {
+        const response = await fetch(`/line98/help/${gameId}`, {
+          method: 'POST'
+        });
+        window.location.href = '/line98';
+      } catch (err) {
+        console.error('Help move failed:', err);
+      }
+    }
+
+  </script>
+</body>
+</html>

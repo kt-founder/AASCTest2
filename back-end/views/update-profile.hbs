@@ -16,7 +16,7 @@
   <h1 class="text-3xl font-semibold text-center mb-6 text-gray-800">Cập Nhật Thông Tin</h1>
 
   <!-- Hiển thị thông tin người dùng -->
-  <form action="/users/update/{{user.id}}" method="POST">
+  <form id="updateForm">
     <!-- Hiển thị username, không cho sửa -->
     <div class="mb-4">
       <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
@@ -48,9 +48,40 @@
     </div>
 
     <!-- Nút cập nhật -->
-    <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">Cập nhật</button>
+    <button type="button" onclick="updateProfile()" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">Cập nhật</button>
   </form>
 </div>
+
+<script>
+  async function updateProfile() {
+    try {
+      const form = document.getElementById('updateForm');
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      const response = await fetch('/users/update/{{user.id}}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (response.ok) {
+        alert('Cập nhật thông tin thành công!');
+        window.location.href = '/';
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Cập nhật thất bại. Vui lòng thử lại.');
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Đã xảy ra lỗi. Vui lòng thử lại.');
+      window.location.reload();
+    }
+  }
+</script>
 
 </body>
 </html>

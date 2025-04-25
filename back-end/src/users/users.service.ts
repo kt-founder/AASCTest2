@@ -83,27 +83,32 @@ export class UsersService {
   }
 
   // Cập nhật thông tin người dùng
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User | null> {
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User|null> {
     const user = await this.usersRepository.findOne({ where: { id } });
-
     if (!user) {
-      throw new Error('User not found');  // Nếu không tìm thấy người dùng, ném lỗi
+      throw new Error('User not found');
     }
 
-    // Kiểm tra nickname không trùng
+    // Kiểm tra nickname trùng
     if (updateUserDto.nickname) {
-      const existingUser = await this.usersRepository.findOne({ where: { nickname: updateUserDto.nickname } });
-      if (existingUser?.id != id) {
+      const existing = await this.usersRepository.findOne({
+        where: { nickname: updateUserDto.nickname },
+      });
+      if (existing && existing.id !== id) {
         throw new Error('Nickname already exists');
       }
     }
 
-    // Cập nhật thông tin người dùng
-    await this.usersRepository.update(id, updateUserDto);
+    // Cập nhật
+    const result = await this.usersRepository.update(id, { ...updateUserDto });
+    // console.log('[UPDATE RESULT]', result);
 
-    // Lấy lại thông tin người dùng sau khi cập nhật
-    return this.usersRepository.findOne({ where: { id } });
+    // Lấy lại và log
+    const updatedUser = await this.usersRepository.findOne({ where: { id } });
+    // console.log('[UPDATED USER]', updatedUser);
+    return updatedUser;
   }
+
 
   // Đổi mật khẩu người dùng
   async changePassword(id: number, oldPassword: string, newPassword: string): Promise<User> {
