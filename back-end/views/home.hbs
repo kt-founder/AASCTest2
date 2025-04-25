@@ -1,0 +1,38 @@
+<!-- views/home.hbs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trang Chủ</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+
+<div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+  <h1 class="text-3xl font-semibold text-center mb-6 text-gray-800">Welcome to Game Hub</h1>
+
+  <!-- Hiển thị thông tin người dùng khi đăng nhập -->
+  {{#if loggedIn}}
+    <h3 class="text-2xl text-gray-700 text-center mb-4">Xin chào, {{nickname}}!</h3>
+    <div class="text-center mb-6">
+      <p><a href="/users/profile/{{userId}}" class="text-blue-500">Xem thông tin cá nhân</a></p>
+      <p><a href="/users/logout" class="text-red-500">Đăng xuất</a></p>
+    </div>
+  {{else}}
+    <div class="text-center mb-6">
+      <a href="/users/login" title="Đăng nhập" class="text-blue-500 text-lg font-medium">Đăng nhập</a>
+    </div>
+  {{/if}}
+
+  <h3 class="text-xl font-semibold text-gray-700 mb-4">Danh Sách Trò Chơi:</h3>
+  <ul class="list-disc pl-6 text-gray-700">
+    <li><a href="/line98" class="text-blue-500">Line98 Cổ Điển</a></li>
+    <li><a href="/caro" class="text-blue-500">Cờ Caro</a></li>
+  </ul>
+
+  <p class="mt-4 text-center text-gray-600">Chọn trò chơi và bắt đầu!</p>
+</div>
+
+</body>
+</html>

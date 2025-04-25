@@ -1,0 +1,56 @@
+<!-- views/update-profile.hbs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cập Nhật Thông Tin</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+
+<div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+  <a href="/" class="text-blue-500 text-2xl">
+    <i class="fas fa-home"></i> <!-- Biểu tượng trang chủ -->
+  </a>
+  <h1 class="text-3xl font-semibold text-center mb-6 text-gray-800">Cập Nhật Thông Tin</h1>
+
+  <!-- Hiển thị thông tin người dùng -->
+  <form action="/users/update/{{user.id}}" method="POST">
+    <!-- Hiển thị username, không cho sửa -->
+    <div class="mb-4">
+      <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+      <input type="text" id="username" name="username" value="{{user.username}}" class="w-full p-2 mt-2 border border-gray-300 rounded-md" readonly>
+    </div>
+
+    <!-- Hiển thị nickname, cho phép sửa -->
+    <div class="mb-4">
+      <label for="nickname" class="block text-sm font-medium text-gray-700">Nickname</label>
+      <input type="text" id="nickname" name="nickname" value="{{user.nickname}}" class="w-full p-2 mt-2 border border-gray-300 rounded-md" required>
+    </div>
+
+    <!-- Hiển thị email, cho phép sửa -->
+    <div class="mb-4">
+      <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+      <input type="email" id="email" name="email" value="{{user.email}}" class="w-full p-2 mt-2 border border-gray-300 rounded-md" required>
+    </div>
+
+    <!-- Hiển thị name, cho phép sửa -->
+    <div class="mb-4">
+      <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+      <input type="text" id="name" name="name" value="{{user.name}}" class="w-full p-2 mt-2 border border-gray-300 rounded-md" required>
+    </div>
+
+    <!-- Hiển thị age, cho phép sửa -->
+    <div class="mb-4">
+      <label for="age" class="block text-sm font-medium text-gray-700">Age</label>
+      <input type="number" id="age" name="age" value="{{user.age}}" class="w-full p-2 mt-2 border border-gray-300 rounded-md" required>
+    </div>
+
+    <!-- Nút cập nhật -->
+    <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">Cập nhật</button>
+  </form>
+</div>
+
+</body>
+</html>

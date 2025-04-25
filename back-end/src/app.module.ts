@@ -2,9 +2,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
-import { FibonacciService } from './fibonacci/fibonacci.service';
-import { FibonacciController } from './fibonacci/fibonacci.controller';
 import { FibonacciModule } from './fibonacci/fibonacci.module';
+import { Line98Module } from './games/line98/line98.module';
+import { AppService } from './app.service'
+import { AppController } from './app.controller'
 
 @Module({
   imports: [
@@ -19,8 +20,12 @@ import { FibonacciModule } from './fibonacci/fibonacci.module';
       synchronize: true,  // Tự động đồng bộ hóa cơ sở dữ liệu (dành cho môi trường phát triển)
     }),
     UsersModule,
-    FibonacciModule,  // Import UsersModule vào AppModule
+    FibonacciModule,
+    Line98Module,
+    AppModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 
 })
 export class AppModule {}

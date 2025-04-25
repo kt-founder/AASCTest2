@@ -1,0 +1,41 @@
+<!-- views/profile.hbs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thông Tin Người Dùng</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+
+<div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+  <a href="/" class="text-blue-500 text-2xl">
+    <i class="fas fa-home"></i> <!-- Biểu tượng trang chủ -->
+  </a>
+  <h1 class="text-3xl font-semibold text-center mb-6 text-gray-800">Thông Tin Người Dùng</h1>
+  <!-- Thông tin người dùng -->
+  <div class="mb-4">
+    <p class="text-lg text-gray-700"><strong>Username:</strong> {{user.username}}</p>
+    <p class="text-lg text-gray-700"><strong>Nickname:</strong> {{user.nickname}}</p>
+    <p class="text-lg text-gray-700"><strong>Email:</strong> {{user.email}}</p>
+  </div>
+
+  <!-- Cập nhật thông tin -->
+  <div class="text-center">
+    <p>
+      <a href="/users/update/{{user.id}}" class="text-blue-500 hover:text-blue-700 font-medium">Cập nhật thông tin</a>
+    </p>
+    <p>
+      <a href="/users/change-password/{{user.id}}" class="text-blue-500 hover:text-blue-700 font-medium">Đổi mật khẩu</a>
+    </p>
+    <p>
+      <a href="/users/logout" class="text-red-500 hover:text-red-700 font-medium">Đăng xuất</a>
+    </p>
+  </div>
+</div>
+
+</body>
+</html>

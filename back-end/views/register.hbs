@@ -1,0 +1,47 @@
+<!-- views/register.hbs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng Ký</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+
+<div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+  <h1 class="text-2xl font-semibold text-center mb-6">Đăng Ký</h1>
+
+  <!-- Form đăng ký -->
+  <form action="/users/register" method="POST">
+    <div class="mb-4">
+      <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+      <input type="text" class="w-full p-2 mt-2 border border-gray-300 rounded-md" id="username" name="username" required>
+    </div>
+
+    <div class="mb-4">
+      <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+      <input type="password" class="w-full p-2 mt-2 border border-gray-300 rounded-md" id="password" name="password" required>
+    </div>
+
+    <div class="mb-4">
+      <label for="nickname" class="block text-sm font-medium text-gray-700">Nickname</label>
+      <input type="text" class="w-full p-2 mt-2 border border-gray-300 rounded-md" id="nickname" name="nickname" required>
+    </div>
+
+    <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">Đăng Ký</button>
+  </form>
+
+  <!-- Hiển thị thông báo lỗi nếu có -->
+  {{#if message}}
+    <div class="mt-4 text-red-600">{{message}}</div>
+  {{/if}}
+
+  <!-- Liên kết đến trang đăng nhập -->
+  <div class="mt-4 text-center">
+    <p class="text-sm">Đã có tài khoản? <a href="/users/login" class="text-blue-500">Đăng nhập</a></p>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,17 +1,28 @@
 // src/users/user.entity.ts
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Entity()
+@Unique(["username"])  // Đảm bảo username là duy nhất
+@Unique(["nickname"])  // Đảm bảo nickname là duy nhất
 export class User {
-  @PrimaryGeneratedColumn()  // Khóa chính tự động
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()  // Cột username
+  @Column()
   username: string;
 
-  @Column()  // Cột email
+  @Column({ nullable: true })
   email: string;
 
-  @Column()  // Cột password
+  @Column()
   password: string;
+
+  @Column({ nullable: true })
+  name: string;  // Thêm trường name cho người dùng
+
+  @Column({ nullable: true })
+  age: number;   // Thêm age cho người dùng
+
+  @Column({ nullable: true })
+  nickname: string;  // Thêm nickname cho người dùng
 }
