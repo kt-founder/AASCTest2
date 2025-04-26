@@ -1,0 +1,91 @@
+<!-- views/waitingForOpponent.hbs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đang tìm đối thủ</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 20px;
+    }
+    .loading-container {
+      text-align: center;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #2d3748;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    .loading {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    p {
+      color: #4a5568;
+      margin-bottom: 1rem;
+    }
+    button {
+      background-color: #e53e3e;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #c53030;
+    }
+  </style>
+</head>
+<body>
+  <div class="loading-container">
+    <h1>Đang tìm đối thủ...</h1>
+    <div class="loading"></div>
+    <p>Vui lòng chờ trong giây lát</p>
+    <button onclick="window.location.href='/games/caro'">Hủy</button>
+  </div>
+
+  <script>
+    const socket = io('http://localhost:3000');
+    const playerName = '{{playerName}}';
+
+    // Khi kết nối socket thành công, gửi sự kiện joinRandomGame
+    socket.on('connect', () => {
+      socket.emit('joinRandomGame', playerName);
+    });
+
+    socket.on('gameStarted', (data) => {
+      window.location.href = `/games/caro/${data.gameId}`;
+    });
+
+    socket.on('error', (data) => {
+      alert(data.message);
+      window.location.href = '/games/caro';
+    });
+  </script>
+</body>
+</html>

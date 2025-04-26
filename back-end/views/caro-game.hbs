@@ -1,0 +1,344 @@
+<!-- views/caro-game.hbs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trò Chơi Cờ Caro</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    .board-table {
+      border-collapse: collapse;
+      border: 2px solid #90CDF4;
+      table-layout: fixed;
+    }
+    .board-cell {
+      width: 35px;
+      height: 35px;
+      border: 1px solid #CBD5E0;
+      text-align: center;
+      vertical-align: middle;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .board-cell:hover {
+      background-color: #f0f9ff;
+    }
+    .symbol-X {
+      color: #ef4444 !important; /* Đỏ */
+    }
+    .symbol-O {
+      color: #3b82f6 !important; /* Xanh */
+    }
+    .board-cell.disabled {
+      cursor: not-allowed;
+      background-color: #f3f4f6;
+    }
+    .player-symbol {
+      font-weight: bold;
+      margin-left: 4px;
+    }
+    .player-symbol.X {
+      color: #ef4444;
+    }
+    .player-symbol.O {
+      color: #3b82f6;
+    }
+    .winning-cell {
+      background-color: #facc15 !important; /* vàng */
+      border: 2px solid #eab308 !important;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+<div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl">
+  <div class="text-center mb-8">
+    <h1 class="text-4xl font-bold text-gray-800 mb-2">Game Cờ Caro</h1>
+    <div class="flex justify-center items-center space-x-4 mb-4">
+      <div class="bg-blue-100 px-4 py-2 rounded-lg">
+        <span class="text-blue-800 font-medium">{{player1}}</span>
+        <span class="player-symbol X">(X)</span>
+      </div>
+      <span class="text-gray-500">VS</span>
+      <div class="bg-red-100 px-4 py-2 rounded-lg">
+        <span class="text-red-800 font-medium">{{player2}}</span>
+        <span class="player-symbol O">(O)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-center mb-6">
+    <table class="board-table">
+      {{#each board}}
+        <tr>
+          {{#each this}}
+            <td class="board-cell" data-x="{{@../index}}" data-y="{{@index}}">
+              {{#if this}}
+                <span class="text-xl font-bold select-none symbol-{{this}}">{{this}}</span>
+              {{else}}
+                <span class="text-xl font-bold select-none"></span>
+              {{/if}}
+            </td>
+          {{/each}}
+        </tr>
+      {{/each}}
+    </table>
+  </div>
+
+  <div class="text-center space-y-4">
+    <div class="bg-gray-100 p-3 rounded-lg inline-block">
+      <p class="text-gray-700 font-medium">Lượt chơi: <span class="text-blue-600" id="currentTurn">{{game.currentTurn}}</span></p>
+    </div>
+    
+    <div id="gameStatus">
+      {{#if game.winner}}
+        <div class="bg-green-100 p-4 rounded-lg">
+          <p class="text-green-800 font-bold text-xl">Game kết thúc! Người thắng: {{game.winner}}</p>
+        </div>
+      {{else}}
+        <div class="bg-yellow-100 p-3 rounded-lg">
+          <p class="text-yellow-800 font-medium">Vẫn đang chơi...</p>
+        </div>
+      {{/if}}
+    </div>
+
+    <button class="mt-6 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 font-medium"
+            onclick="window.location.href='/games/caro'">
+      Quay lại
+    </button>
+
+    <button id="restartBtn" class="mt-6 px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition duration-200 font-medium hidden">
+      Chơi lại
+    </button>
+  </div>
+</div>
+
+<script>
+  const socket = io('http://localhost:3000');
+  const gameId = {{game.id}};
+  const size = 15;
+  const currentPlayerName = '{{currentPlayer}}';
+  const isFirstPlayer = currentPlayerName === '{{player1}}';
+  const mySymbol = isFirstPlayer ? 'X' : 'O';
+  let currentTurn = '{{game.currentTurn}}';
+  let gameEnded = {{#if game.winner}}true{{else}}false{{/if}};
+  let board = Array(size).fill().map(() => Array(size).fill('')); // Khởi tạo bảng trống
+  let hasVotedRestart = false;
+
+  // Cập nhật bảng từ dữ liệu ban đầu
+  {{#each board}}
+    {{#each this}}
+      {{#if this}}
+        board[{{@../index}}][{{@index}}] = '{{this}}';
+      {{/if}}
+    {{/each}}
+  {{/each}}
+
+  // Khi kết nối socket thành công
+  socket.on('connect', () => {
+    console.log('Socket connected');
+    // Join game room
+    socket.emit('joinGame', { 
+      gameId: gameId, 
+      playerName: currentPlayerName,
+      symbol: mySymbol
+    });
+  });
+
+  // Lắng nghe sự kiện joinedGame
+  socket.on('joinedGame', (data) => {
+    console.log('Joined game:', data);
+    if (data.gameId === gameId) {
+      updateBoard();
+      updateBoardState();
+    }
+  });
+
+  // Lắng nghe sự kiện moveMade
+  socket.on('moveMade', (data) => {
+    console.log('Move made:', data);
+    if (data.gameId === gameId) {
+      // Cập nhật nước đi mới
+      if (data.lastMove) {
+        const { x, y, player } = data.lastMove;
+        board[x][y] = player;
+        updateBoard();
+        highlightLastMove(x, y);
+      }
+      
+      // Cập nhật lượt chơi
+      currentTurn = data.currentTurn;
+      document.getElementById('currentTurn').textContent = currentTurn;
+      
+      // Cập nhật trạng thái các ô
+      updateBoardState();
+    }
+  });
+
+  // Lắng nghe sự kiện gameEnded
+  socket.on('gameEnded', (data) => {
+    console.log('Game ended:', data);
+    if (data.gameId === gameId) {
+      gameEnded = true;
+      if (data.lastMove) {
+        const { x, y, player } = data.lastMove;
+        board[x][y] = player;
+        updateBoard();
+      }
+      const gameStatus = document.getElementById('gameStatus');
+      gameStatus.innerHTML = `
+        <div class="bg-green-100 p-4 rounded-lg">
+          <p class="text-green-800 font-bold text-xl">Game kết thúc! Người thắng: ${data.winner}</p>
+        </div>
+      `;
+      disableAllCells();
+      showRestartButton();
+    }
+  });
+
+  // Lắng nghe sự kiện error
+  socket.on('error', (data) => {
+    console.error('Socket error:', data);
+    alert(data.message);
+  });
+
+  // Hàm cập nhật bảng
+  function updateBoard() {
+    document.querySelectorAll('.board-cell').forEach(cell => {
+      const x = parseInt(cell.dataset.x);
+      const y = parseInt(cell.dataset.y);
+      const value = board[x][y];
+      const span = cell.querySelector('span');
+      
+      span.textContent = value;
+      span.className = 'text-xl font-bold select-none';
+      if (value === 'X') {
+        span.classList.add('symbol-X');
+      } else if (value === 'O') {
+        span.classList.add('symbol-O');
+      }
+    });
+  }
+
+  // Hàm cập nhật trạng thái bảng dựa vào lượt chơi
+  function updateBoardState() {
+    if (gameEnded) {
+      disableAllCells();
+      return;
+    }
+
+    const isMyTurn = currentTurn === mySymbol;
+    
+    if (isMyTurn) {
+      enableEmptyCells();
+    } else {
+      disableAllCells();
+    }
+  }
+
+  // Hàm highlight nước đi cuối cùng
+  function highlightLastMove(x, y) {
+    document.querySelectorAll('.board-cell').forEach(cell => {
+      cell.classList.remove('bg-yellow-100');
+    });
+    
+    const lastMoveCell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+    if (lastMoveCell) {
+      lastMoveCell.classList.add('bg-yellow-100');
+    }
+  }
+
+  // Xử lý click vào ô
+  document.querySelectorAll('.board-cell').forEach(cell => {
+    cell.addEventListener('click', () => {
+      const isMyTurn = currentTurn === mySymbol;
+      
+      if (gameEnded || !isMyTurn || cell.querySelector('span').textContent !== '') {
+        return;
+      }
+
+      const x = parseInt(cell.dataset.x);
+      const y = parseInt(cell.dataset.y);
+
+      console.log('Making move:', { x, y, player: mySymbol });
+      socket.emit('makeMove', {
+        gameId: gameId,
+        x: x,
+        y: y,
+        player: mySymbol
+      });
+    });
+  });
+
+  // Hàm vô hiệu hóa tất cả các ô
+  function disableAllCells() {
+    document.querySelectorAll('.board-cell').forEach(cell => {
+      cell.classList.add('disabled');
+      cell.style.cursor = 'not-allowed';
+    });
+  }
+
+  // Hàm kích hoạt các ô trống
+  function enableEmptyCells() {
+    document.querySelectorAll('.board-cell').forEach(cell => {
+      if (cell.querySelector('span').textContent === '') {
+        cell.classList.remove('disabled');
+        cell.style.cursor = 'pointer';
+      } else {
+        cell.classList.add('disabled');
+        cell.style.cursor = 'not-allowed';
+      }
+    });
+  }
+
+  // Thiết lập trạng thái ban đầu
+  updateBoard();
+  updateBoardState();
+
+  document.getElementById('restartBtn').addEventListener('click', () => {
+    if (!hasVotedRestart) {
+      socket.emit('restartGame', { gameId: gameId });
+      hasVotedRestart = true;
+      document.getElementById('restartBtn').innerText = 'Đã gửi yêu cầu, chờ đối thủ...';
+      document.getElementById('restartBtn').disabled = true;
+    }
+  });
+
+  // Lắng nghe sự kiện restartVote
+  socket.on('restartVote', (data) => {
+    document.getElementById('gameStatus').innerHTML = `
+      <div class="bg-yellow-100 p-3 rounded-lg">
+        <p class="text-yellow-800 font-medium">Đã có ${data.votes.length}/2 người đồng ý chơi lại. Chờ đối thủ...</p>
+      </div>
+    `;
+  });
+
+  // Lắng nghe sự kiện gameRestarted
+  socket.on('gameRestarted', (data) => {
+    board = Array(size).fill().map(() => Array(size).fill(''));
+    currentTurn = data.currentTurn;
+    gameEnded = false;
+    updateBoard();
+    updateBoardState();
+    document.getElementById('gameStatus').innerHTML = `
+      <div class="bg-yellow-100 p-3 rounded-lg">
+        <p class="text-yellow-800 font-medium">Ván mới bắt đầu!</p>
+      </div>
+    `;
+    hideRestartButton();
+  });
+
+  function showRestartButton() {
+    document.getElementById('restartBtn').classList.remove('hidden');
+    document.getElementById('restartBtn').innerText = 'Chơi lại';
+    document.getElementById('restartBtn').disabled = false;
+    hasVotedRestart = false;
+  }
+
+  function hideRestartButton() {
+    document.getElementById('restartBtn').classList.add('hidden');
+  }
+</script>
+</body>
+</html>

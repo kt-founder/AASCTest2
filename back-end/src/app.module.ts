@@ -6,6 +6,7 @@ import { FibonacciModule } from './fibonacci/fibonacci.module';
 import { Line98Module } from './games/line98/line98.module';
 import { AppService } from './app.service'
 import { AppController } from './app.controller'
+import { CaroModule } from './games/caro/caro.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AppController } from './app.controller'
     FibonacciModule,
     Line98Module,
     AppModule,
+    CaroModule,
   ],
   controllers: [AppController],
   providers: [AppService],
