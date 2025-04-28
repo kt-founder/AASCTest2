@@ -94,30 +94,30 @@
     .ball:hover {
       transform: scale(1.1);
     }
-    .red { 
+    .red {
       background: radial-gradient(circle at 70% 70%, #ff5555, #cc0000);
       box-shadow: inset -2px -2px 6px rgba(0,0,0,0.5),
-                  inset 2px 2px 6px rgba(255,255,255,0.5);
+      inset 2px 2px 6px rgba(255,255,255,0.5);
     }
-    .blue { 
+    .blue {
       background: radial-gradient(circle at 70% 70%, #5555ff, #0000cc);
       box-shadow: inset -2px -2px 6px rgba(0,0,0,0.5),
-                  inset 2px 2px 6px rgba(255,255,255,0.5);
+      inset 2px 2px 6px rgba(255,255,255,0.5);
     }
-    .green { 
+    .green {
       background: radial-gradient(circle at 70% 70%, #00ffff, #00cccc);
       box-shadow: inset -2px -2px 6px rgba(0,0,0,0.5),
-                  inset 2px 2px 6px rgba(255,255,255,0.5);
+      inset 2px 2px 6px rgba(255,255,255,0.5);
     }
-    .yellow { 
+    .yellow {
       background: radial-gradient(circle at 70% 70%, #ffff55, #cccc00);
       box-shadow: inset -2px -2px 6px rgba(0,0,0,0.5),
-                  inset 2px 2px 6px rgba(255,255,255,0.5);
+      inset 2px 2px 6px rgba(255,255,255,0.5);
     }
-    .purple { 
+    .purple {
       background: radial-gradient(circle at 70% 70%, #ff55ff, #cc00cc);
       box-shadow: inset -2px -2px 6px rgba(0,0,0,0.5),
-                  inset 2px 2px 6px rgba(255,255,255,0.5);
+      inset 2px 2px 6px rgba(255,255,255,0.5);
     }
     .small-ball {
       transform: scale(0.3);
@@ -168,6 +168,20 @@
     .cell-highlight {
       background: rgba(255,255,255,0.2) !important;
     }
+    @keyframes moveAlongPath {
+      0% {
+        transform: translate(0, 0);
+      }
+      100% {
+        transform: translate(var(--end-x), var(--end-y));
+      }
+    }
+    .ball.animating {
+      position: relative;
+      z-index: 100;
+      pointer-events: none;
+      transition: all 0.2s ease;
+    }
     .help-button {
       background: none;
       border: none;
@@ -184,185 +198,265 @@
   </style>
 </head>
 <body>
-  <div class="game-container">
-    <a href="/" class="home-button">Trang chủ</a>
-    <h1>Chào mừng, {{playerName}}!</h1>
+<div class="game-container">
+  <a href="/" class="home-button">Trang chủ</a>
+  <h1>Chào mừng, {{playerName}}!</h1>
 
-    <!-- Hiển thị bảng game -->
-    <table id="gameBoard">
-      <tbody>
-      {{#each game.board}}
-        <tr>
-          {{#each this}}
-            <td data-x="{{@../index}}" data-y="{{@index}}">
-              {{#if this}}
-                <div class="ball {{this}} {{#if this.isSmall}}small-ball{{/if}}" 
-                     data-color="{{this}}"
-                     data-x="{{@../index}}" 
-                     data-y="{{@index}}"></div>
-              {{else}}
-                <div style="width:36px; height:36px;"></div>
-              {{/if}}
-            </td>
-          {{/each}}
-        </tr>
-      {{/each}}
-      </tbody>
-    </table>
+  <!-- Hiển thị bảng game -->
+  <table id="gameBoard">
+    <tbody>
+    {{#each game.board}}
+      <tr>
+        {{#each this}}
+          <td data-x="{{@../index}}" data-y="{{@index}}">
+            {{#if this}}
+              <div class="ball {{this}} {{#if this.isSmall}}small-ball{{/if}}"
+                   data-color="{{this}}"
+                   data-x="{{@../index}}"
+                   data-y="{{@index}}"></div>
+            {{else}}
+              <div style="width:36px; height:36px;"></div>
+            {{/if}}
+          </td>
+        {{/each}}
+      </tr>
+    {{/each}}
+    </tbody>
+  </table>
 
-    <!-- Các nút chức năng -->
-    <div class="controls">
-      <button onclick="undoMove()">Undo</button>
-      <button onclick="restartGame()">Chơi lại</button>
-      <button onclick="helpMove()">Trợ giúp</button>
-    </div>
-
-
+  <!-- Các nút chức năng -->
+  <div class="controls">
+    <button onclick="undoMove()">Undo</button>
+    <button onclick="restartGame()">Chơi lại</button>
+    <button onclick="helpMove()">Trợ giúp</button>
   </div>
 
-  <script>
-    let selectedBall = null;
-    const gameId = '{{game.id}}';
 
-    document.querySelectorAll('.ball').forEach(ball => {
-      ball.addEventListener('click', handleBallClick);
-    });
+</div>
 
-    document.querySelectorAll('td').forEach(cell => {
-      cell.addEventListener('click', handleCellClick);
-    });
+<script>
+  let selectedBall = null;
+  const gameId = '{{game.id}}';
 
-    function handleBallClick(event) {
-      event.stopPropagation();
-      const ball = event.target;
-      
-      // Deselect if clicking the same ball
-      if (selectedBall === ball) {
-        deselectBall();
-        return;
-      }
+  document.querySelectorAll('.ball').forEach(ball => {
+    ball.addEventListener('click', handleBallClick);
+  });
 
-      // Select the new ball
-      if (selectedBall) {
-        deselectBall();
-      }
-      
-      selectedBall = ball;
-      ball.classList.add('selected');
+  document.querySelectorAll('td').forEach(cell => {
+    cell.addEventListener('click', handleCellClick);
+  });
+
+  function handleBallClick(event) {
+    event.stopPropagation();
+    const ball = event.target;
+
+    // Deselect if clicking the same ball
+    if (selectedBall === ball) {
+      deselectBall();
+      return;
     }
 
-    function handleCellClick(event) {
-      const cell = event.target.tagName === 'TD' ? event.target : event.target.parentElement;
-      const x2 = parseInt(cell.dataset.x);
-      const y2 = parseInt(cell.dataset.y);
-
-      // If no ball is selected or clicking on a cell with a ball, do nothing
-      if (!selectedBall || cell.querySelector('.ball')) {
-        return;
-      }
-
-      const x1 = parseInt(selectedBall.dataset.x);
-      const y1 = parseInt(selectedBall.dataset.y);
-
-      // Make the move
-      moveBall(x1, y1, x2, y2);
+    // Select the new ball
+    if (selectedBall) {
+      deselectBall();
     }
 
-    async function moveBall(x1, y1, x2, y2) {
-      try {
-        const response = await fetch(`/line98/move/${gameId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ x1, y1, x2, y2 })
-        });
+    selectedBall = ball;
+    ball.classList.add('selected');
+  }
 
-        if (response.ok) {
-          // Add moving animation
-          selectedBall.classList.add('moving');
-          
-          // Wait for animation
-          await new Promise(resolve => setTimeout(resolve, 300));
-          
-          // Refresh the page to show new state
-          window.location.reload();
-        } else {
-          const errorData = await response.json();
-          if (errorData.message && errorData.message.includes('Game Over: Board is full')) {
-            alert('Game Over! Bảng đã đầy.');
-            window.location.href = '/line98';
-          } else {
-            // Invalid move - show feedback
-            selectedBall.classList.add('invalid');
-            setTimeout(() => {
-              selectedBall.classList.remove('invalid');
-              deselectBall();
-            }, 500);
-          }
+  function handleCellClick(event) {
+    const cell = event.target.tagName === 'TD' ? event.target : event.target.parentElement;
+    const x2 = parseInt(cell.dataset.x);
+    const y2 = parseInt(cell.dataset.y);
+
+    // If no ball is selected or clicking on a cell with a ball, do nothing
+    if (!selectedBall || cell.querySelector('.ball')) {
+      return;
+    }
+
+    const x1 = parseInt(selectedBall.dataset.x);
+    const y1 = parseInt(selectedBall.dataset.y);
+
+    // Make the move
+    moveBall(x1, y1, x2, y2);
+  }
+
+  async function moveBall(x1, y1, x2, y2) {
+    try {
+      const response = await fetch(`/line98/move/${gameId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ x1, y1, x2, y2 })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Move successful. Path:', data.path);
+
+        const ball = selectedBall;
+        let startCell = ball.parentElement;
+
+        ball.classList.add('animating');
+
+        const gameBoard = document.getElementById('gameBoard');
+        const rows = gameBoard.getElementsByTagName('tr');
+
+        for (let i = 0; i < data.path.length - 1; i++) {
+          const [currentX, currentY] = data.path[i];
+          const [nextX, nextY] = data.path[i + 1];
+
+          const nextCell = rows[nextX].cells[nextY];
+
+          // Xóa placeholder nếu có
+          const placeholder = nextCell.querySelector('div[style*="width:36px"]');
+          if (placeholder) nextCell.removeChild(placeholder);
+
+          startCell.removeChild(ball);
+          nextCell.appendChild(ball);
+          startCell = nextCell;
+
+          await new Promise(resolve => setTimeout(resolve, 120));
         }
-      } catch (error) {
-        console.error('Error moving ball:', error);
-      }
-    }
 
-    function deselectBall() {
-      if (selectedBall) {
-        selectedBall.classList.remove('selected');
-        selectedBall = null;
-      }
-    }
-    async function undoMove() {
-      try {
-        const response = await fetch(`/line98/undo/${gameId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.ok) {
+        // Đợi animation hoàn thành rồi reload
+        ball.classList.remove('animating');
+        await new Promise(resolve => setTimeout(resolve, 100));
+        window.location.reload();
+      } else {
+        const errorData = await response.json();
+        if (errorData.message && errorData.message.includes('Game Over: Board is full')) {
+          alert('Game Over! Bảng đã đầy.');
           window.location.href = '/line98';
         } else {
-          alert('Không thể hoàn tác bước đi.');
+          // Invalid move - show feedback
+          selectedBall.classList.add('invalid');
+          setTimeout(() => {
+            selectedBall.classList.remove('invalid');
+            deselectBall();
+          }, 500);
         }
-      } catch (err) {
-        console.error('Undo failed:', err);
-        alert('Đã xảy ra lỗi khi thực hiện undo.');
       }
+    } catch (error) {
+      console.error('Error moving ball:', error);
     }
+  }
 
-    async function restartGame() {
-      try {
-        const response = await fetch(`/line98/restart/${gameId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.ok) {
-          window.location.href = '/line98';
-        } else {
-          alert('Không thể bắt đầu lại game.');
+  function deselectBall() {
+    if (selectedBall) {
+      selectedBall.classList.remove('selected');
+      selectedBall = null;
+    }
+  }
+  async function undoMove() {
+    try {
+      const response = await fetch(`/line98/undo/${gameId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
         }
-      } catch (err) {
-        console.error('Restart failed:', err);
-        alert('Đã xảy ra lỗi khi bắt đầu lại game.');
-      }
-    }
+      });
 
-    async function helpMove() {
-      try {
-        const response = await fetch(`/line98/help/${gameId}`, {
-          method: 'POST'
-        });
+      if (response.ok) {
         window.location.href = '/line98';
-      } catch (err) {
-        console.error('Help move failed:', err);
+      } else {
+        alert('Không thể hoàn tác bước đi.');
       }
+    } catch (err) {
+      console.error('Undo failed:', err);
+      alert('Đã xảy ra lỗi khi thực hiện undo.');
     }
+  }
 
-  </script>
+  async function restartGame() {
+    try {
+      const response = await fetch(`/line98/restart/${gameId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        window.location.href = '/line98';
+      } else {
+        alert('Không thể bắt đầu lại game.');
+      }
+    } catch (err) {
+      console.error('Restart failed:', err);
+      alert('Đã xảy ra lỗi khi bắt đầu lại game.');
+    }
+  }
+
+  async function helpMove() {
+    try {
+      const response = await fetch(`/line98/help/${gameId}`, {
+        method: 'POST'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (!data.success) {
+          alert('Không thể trợ giúp.');
+          return;
+        }
+
+        // Làm nổi bật điểm đầu và cuối
+        const gameBoard = document.getElementById('gameBoard');
+        const rows = gameBoard.getElementsByTagName('tr');
+        const [fromX, fromY] = data.from;
+        const [toX, toY] = data.to;
+
+        // Highlight from/to cells
+        rows[fromX].cells[fromY].classList.add('cell-highlight');
+        rows[toX].cells[toY].classList.add('cell-highlight');
+
+        // Tìm bóng ở điểm đầu
+        const fromCell = rows[fromX].cells[fromY];
+        const ball = fromCell.querySelector('.ball');
+        if (!ball) {
+          alert('Không tìm thấy bóng để trợ giúp!');
+          return;
+        }
+
+        let startCell = fromCell;
+        ball.classList.add('animating');
+
+        // Animation giống moveBall
+        for (let i = 0; i < data.path.length - 1; i++) {
+          const [currentX, currentY] = data.path[i];
+          const [nextX, nextY] = data.path[i + 1];
+          const nextCell = rows[nextX].cells[nextY];
+
+          // Xóa placeholder nếu có
+          const placeholder = nextCell.querySelector('div[style*="width:36px"]');
+          if (placeholder) nextCell.removeChild(placeholder);
+
+          startCell.removeChild(ball);
+          nextCell.appendChild(ball);
+          startCell = nextCell;
+
+          await new Promise(resolve => setTimeout(resolve, 120));
+        }
+
+        ball.classList.remove('animating');
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Xóa highlight
+        rows[fromX].cells[fromY].classList.remove('cell-highlight');
+        rows[toX].cells[toY].classList.remove('cell-highlight');
+
+        window.location.reload();
+      } else {
+        alert('Không thể trợ giúp.');
+      }
+    } catch (err) {
+      console.error('Help move failed:', err);
+      alert('Đã xảy ra lỗi khi trợ giúp.');
+    }
+  }
+
+</script>
 </body>
 </html>

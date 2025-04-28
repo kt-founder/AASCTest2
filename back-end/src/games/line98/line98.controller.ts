@@ -4,6 +4,7 @@ import { Game } from './game.entity'
 
 @Controller('line98')
 export class Line98Controller {
+  private readonly BOARD_SIZE = 9;
   constructor(private readonly line98Service: Line98Service) {}
 
   // Tạo trò chơi mới với tên người chơi và lưu gameId vào session
@@ -53,7 +54,6 @@ export class Line98Controller {
 
   // Di chuyển bóng và kiểm tra đường đi ngắn nhất
   @Post('move/:gameId')
-  @Render('game-line98')
   async moveBall(
     @Param('gameId') gameId: number,
     @Body() moveData: { x1: number, y1: number, x2: number, y2: number },
@@ -62,12 +62,12 @@ export class Line98Controller {
     let playerName = req.session.user?.nickname || 'Player1';
 
     try {
-      if (!this.isValidCoordinates(moveData.x1, moveData.y1) || 
-          !this.isValidCoordinates(moveData.x2, moveData.y2)) {
+      if (!this.isValidCoordinates(moveData.x1, moveData.y1) ||
+        !this.isValidCoordinates(moveData.x2, moveData.y2)) {
         throw new HttpException('Invalid coordinates', HttpStatus.BAD_REQUEST);
       }
 
-      await this.line98Service.moveBall(
+      const { path } = await this.line98Service.moveBall(
         gameId,
         moveData.x1,
         moveData.y1,
@@ -79,30 +79,34 @@ export class Line98Controller {
       const board = JSON.parse(game.board);
 
       return {
+        success: true,
+        message: 'Move successful',
+        playerName,
         game: {
           ...game,
           board: board,
         },
-        playerName,
-        message: 'Move successful'
+        path: path, // đây chính là mảng JSON như bạn yêu cầu
       };
 
     } catch (error) {
       const game = await this.line98Service.getGameBySession(req.session);
+
       return {
+        success: false,
+        error: error.message || 'Could not complete the move',
+        playerName,
         game: {
           ...game,
           board: JSON.parse(game.board),
         },
-        playerName,
-        error: error.message || 'Could not complete the move'
       };
     }
   }
 
   // Kiểm tra tọa độ hợp lệ
   private isValidCoordinates(x: number, y: number): boolean {
-    return x >= 0 && x < 5 && y >= 0 && y < 5;
+    return x >= 0 && x < this.BOARD_SIZE && y >= 0 && y < this.BOARD_SIZE;
   }
 
   // Undo (quay lại trạng thái trước đó)
@@ -142,13 +146,24 @@ export class Line98Controller {
   @Post('help/:gameId')
   async helpMove(@Param('gameId') gameId: number, @Req() req, @Res() res) {
     try {
-      await this.line98Service.helpMove(gameId);
-      return res.redirect('/line98');
+      const { path, from, to } = await this.line98Service.helpMove(gameId);
+
+      return res.json({
+        success: true,
+        message: 'Help move successful',
+        path,
+        from,
+        to
+      });
     } catch (error) {
-      console.log(error);
-      return res.redirect('/line98');
+      console.error('Help move error:', error.message);
+      return res.json({
+        success: false,
+        error: error.message || 'Failed to perform help move'
+      });
     }
   }
+
   @Post('restart/:gameId')
   @Render('game-line98')
   async restart(@Param('gameId') gameId: number, @Req() req: any) {
