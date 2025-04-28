@@ -67,7 +67,7 @@ export class Line98Controller {
         throw new HttpException('Invalid coordinates', HttpStatus.BAD_REQUEST);
       }
 
-      const { path } = await this.line98Service.moveBall(
+      const { path, gameOver } = await this.line98Service.moveBall(
         gameId,
         moveData.x1,
         moveData.y1,
@@ -77,7 +77,6 @@ export class Line98Controller {
 
       const game = await this.line98Service.getGameBySession(req.session);
       const board = JSON.parse(game.board);
-
       return {
         success: true,
         message: 'Move successful',
@@ -87,6 +86,7 @@ export class Line98Controller {
           board: board,
         },
         path: path, // đây chính là mảng JSON như bạn yêu cầu
+        gameOver: gameOver,
       };
 
     } catch (error) {

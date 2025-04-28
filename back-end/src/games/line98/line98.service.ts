@@ -71,42 +71,64 @@ export class Line98Service {
   }
 
   async spawnBall(gameId: number): Promise<void> {
-    const game = await this.gameRepository.findOne({ where: { id: gameId } })
-    if (!game) throw new BadRequestException('Game not found')
+    const game = await this.gameRepository.findOne({ where: { id: gameId } });
+    if (!game) throw new BadRequestException('Game not found');
 
-    const board: (string | null)[][] = JSON.parse(game.board)
-    let count = 0
-    const maxAttempts = 100
-    let attempts = 0
+    const board: (string | null)[][] = JSON.parse(game.board);
 
-    while (count < 3 && attempts < maxAttempts) {
-      const x = Math.floor(Math.random() * this.BOARD_SIZE)
-      const y = Math.floor(Math.random() * this.BOARD_SIZE)
-      if (!board[x][y]) {
-        const color = this.generateBallColor()
-        board[x][y] = color
-
-        // Kiểm tra nếu sinh bóng gây nổ thì bỏ bóng đó và thử lại
-        if (this.willExplode(board, x, y, color)) {
-          board[x][y] = null
-          attempts++
-          continue
+    // Tính tổng số ô trống còn lại
+    const emptyCells: [number, number][] = [];
+    for (let i = 0; i < this.BOARD_SIZE; i++) {
+      for (let j = 0; j < this.BOARD_SIZE; j++) {
+        if (board[i][j] === null) {
+          emptyCells.push([i, j]);
         }
-        const ball = new Ball()
-        ball.color = color
-        ball.x = x
-        ball.y = y
-        ball.game = game
-
-        await this.ballRepository.save(ball)
-        count++
       }
-      attempts++
     }
 
-    game.board = JSON.stringify(board)
-    await this.gameRepository.save(game)
+    // Số bóng cần spawn: nhỏ hơn hoặc bằng 3 tùy theo số ô trống
+    const ballsToSpawn = Math.min(3, emptyCells.length);
+    if (ballsToSpawn === 0) {
+      // Không còn chỗ spawn
+      return;
+    }
+
+    let count = 0;
+    const maxAttempts = 100;
+    let attempts = 0;
+
+    while (count < ballsToSpawn && attempts < maxAttempts) {
+      const randomIndex = Math.floor(Math.random() * emptyCells.length);
+      const [x, y] = emptyCells[randomIndex];
+
+      if (board[x][y] === null) { // Đảm bảo vẫn là ô trống
+        const color = this.generateBallColor();
+        board[x][y] = color;
+
+        if (this.willExplode(board, x, y, color)) {
+          board[x][y] = null; // Nếu nổ, bỏ và thử ô khác
+          attempts++;
+          continue;
+        }
+
+        const ball = new Ball();
+        ball.color = color;
+        ball.x = x;
+        ball.y = y;
+        ball.game = game;
+
+        await this.ballRepository.save(ball);
+
+        count++;
+        emptyCells.splice(randomIndex, 1); // Xóa ô vừa spawn để không spawn lại chỗ cũ
+      }
+      attempts++;
+    }
+
+    game.board = JSON.stringify(board);
+    await this.gameRepository.save(game);
   }
+
   private willExplode(
     board: (string | null)[][],
     x: number,
@@ -135,7 +157,7 @@ export class Line98Service {
     y1: number,
     x2: number,
     y2: number,
-  ): Promise<{ path: [number, number][] }> {
+  ): Promise<{ path: [number, number][], gameOver: boolean }> {
     const game = await this.gameRepository.findOne({ where: { id: gameId } });
     if (!game) throw new BadRequestException('Game not found');
 
@@ -143,7 +165,6 @@ export class Line98Service {
     await this.saveUndoState(game, board);
 
     const path = this.findShortestPath(board, x1, y1, x2, y2);
-    console.log(path)
     if (path.length === 0)
       throw new BadRequestException('No valid path to move');
 
@@ -158,12 +179,8 @@ export class Line98Service {
     if (exploded) {
       game.board = JSON.stringify(board);
       await this.gameRepository.save(game);
-      return { path };
+      return { path, gameOver: false };
     }
-
-    const hasEmpty = board.some((row) => row.some((cell) => cell === null));
-    if (!hasEmpty)
-      throw new BadRequestException('Game over: No more space to spawn balls');
 
     await this.spawnBall(game.id);
 
@@ -175,9 +192,17 @@ export class Line98Service {
 
     game.board = JSON.stringify(board);
     await this.gameRepository.save(game);
-
-    return { path };
+    const hasEmpty = board.some((row) => row.some((cell) => cell === null));
+    if (!hasEmpty) {
+      // Không còn ô trống, kết thúc game
+      game.board = JSON.stringify(board);
+      await this.gameRepository.save(game);
+      console.log("GameOver");
+      return { path, gameOver: true };
+    }
+    return { path, gameOver: false };
   }
+
 
 
   private findShortestPath(
