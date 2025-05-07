@@ -1,33 +1,41 @@
-// src/app.module.ts
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config'; // ⚠️ thêm ConfigModule
+
 import { UsersModule } from './users/users.module';
 import { FibonacciModule } from './fibonacci/fibonacci.module';
 import { Line98Module } from './games/line98/line98.module';
-import { AppService } from './app.service'
-import { AppController } from './app.controller'
 import { CaroModule } from './games/caro/caro.module';
+import { AppService } from './app.service';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',  // Loại cơ sở dữ liệu là MySQL
-      host: 'localhost',  // Địa chỉ của MySQL server
-      port: 3306,  // Cổng MySQL mặc định
-      username: 'root',  // Tên người dùng MySQL
-      password: 'tcgkhanh170502',  // Mật khẩu MySQL
-      database: 'game_server',  // Tên cơ sở dữ liệu
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],  // Các Entity
-      synchronize: true,  // Tự động đồng bộ hóa cơ sở dữ liệu (dành cho môi trường phát triển)
+    // ✅ Đặt ở trên cùng để đảm bảo các module sau dùng được
+    ConfigModule.forRoot({
+      isGlobal: true, // Dùng ở mọi nơi không cần import lại
     }),
+
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'mysql',
+        host: config.get('DB_HOST'),
+        port: +config.getOrThrow<number>('DB_PORT'),
+        username: config.get('DB_USERNAME'),
+        password: config.get('DB_PASSWORD'),
+        database: config.get('DB_NAME'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: true,
+      }),
+    }),
+
     UsersModule,
     FibonacciModule,
     Line98Module,
-    AppModule,
     CaroModule,
   ],
   controllers: [AppController],
   providers: [AppService],
-
 })
 export class AppModule {}
